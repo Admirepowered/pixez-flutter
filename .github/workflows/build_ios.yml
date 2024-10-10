@@ -1,4 +1,4 @@
-name: Build IOS
+name: Build
 on:
   workflow_dispatch: {}
 jobs:
@@ -26,3 +26,25 @@ jobs:
         with:
           name: pixez-ios.ipa
           path: build/ios/iphoneos/pixez-ios.ipa
+  Build_Windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter --version
+      - run: flutter pub get
+      - run: flutter packages pub run build_runner build --delete-conflicting-outputs
+      - run: flutter build windows --release
+      - name: Create Windows Build Directory and Zip
+        run: |
+          mkdir -p build/windows/Release
+          mv build/windows/Release/Runner.exe build/windows/Release/
+          cd build/windows/Release
+          zip -r pixez-windows.zip Runner.exe
+      - uses: actions/upload-artifact@v3
+        with:
+          name: pixez-windows.zip
+          path: build/windows/Release/pixez-windows.zip
